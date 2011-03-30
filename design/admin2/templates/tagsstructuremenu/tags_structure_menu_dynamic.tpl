@@ -26,7 +26,7 @@ function TagsStructureMenu( path, persistent )
 
     this.defaultIcon = "{ezini('Icons','Default','eztags.ini')}";
 
-	this.showTips       = {if ezini('TreeMenu','ToolTips','eztags.ini')|eq('enabled')}true{else}false{/if};
+    this.showTips       = {if ezini('TreeMenu','ToolTips','eztags.ini')|eq('enabled')}true{else}false{/if};
     this.autoOpen       = {if ezini('TreeMenu','AutoopenCurrentTag','eztags.ini')|eq('enabled')}true{else}false{/if};
 
 {literal}
@@ -58,7 +58,7 @@ function TagsStructureMenu( path, persistent )
 
     function _delCookie( name )
     {
-    	_setCookie( name, '', ( new Date() - 86400000 ) );
+        _setCookie( name, '', ( new Date() - 86400000 ) );
     }
 
     this.setOpen = function( tagID )
@@ -73,10 +73,10 @@ function TagsStructureMenu( path, persistent )
 
     this.setClosed = function( tagID )
     {
-    	var openIndex = jQuery.inArray( '' + tagID, this.open );
+        var openIndex = jQuery.inArray( '' + tagID, this.open );
         if ( openIndex !== -1 )
         {
-        	this.open.splice( openIndex, 1 );
+            this.open.splice( openIndex, 1 );
             this.updateCookie();
         }
     };
@@ -151,12 +151,12 @@ function TagsStructureMenu( path, persistent )
 
         html += '><span class="node-name-normal' + ((item.subtree_limitations_count > 0) ? ' disabled' : '') + '">'
             + item.keyword;
-        
+
         if(item.synonyms_count > 0)
-    	{
-    		html += ' (+' + item.synonyms_count + ')';
-    	}
-        
+        {
+            html += ' (+' + item.synonyms_count + ')';
+        }
+
         html += '<\/span>';
 
         html += '<\/a>';
@@ -372,25 +372,24 @@ var treeMenu;
 (function(){ldelim}
     var path         = [{if is_set( $module_result.path[0].tag_id)}{foreach $module_result.path as $element}'{$element.tag_id}'{delimiter}, {/delimiter}{/foreach}{/if}];
     var persistence  = {if $menu_persistence}true{else}false{/if};
+    var currentDate  = new Date().valueOf();
     treeMenu         = new TagsStructureMenu( path, persistence );
 
-{cache-block keys=array( 0, $access_type ) expiry=0}
     var rootTag = {ldelim}{*
         *}"id":0,{*
-		*}"parent_id":0,{*
+        *}"parent_id":0,{*
         *}"has_children":true,{*
         *}"keyword":"{"Top Level Tags"|i18n('extension/eztags/tags/treemenu')|wash(javascript)}",{*
         *}"url":{'tags/dashboard'|ezurl},{*
         *}"icon":"",{*
-        *}"modified":0{rdelim};
+        *}"modified":currentDate{rdelim};
 
     document.writeln( '<ul id="content_tree_menu">' );
     document.writeln( treeMenu.generateEntry( rootTag, false, true ) );
     document.writeln( '<\/ul>' );
 
-    treeMenu.load( false, 0, 0 );
+    treeMenu.load( false, 0, currentDate );
 {rdelim})();
-{/cache-block}
 
 // -->
 </script>
