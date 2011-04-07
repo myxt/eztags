@@ -1,7 +1,29 @@
 <?php
 
-$tags = eZTagsObject::fetchByKeyword( end( $Params['Parameters'] ) );
-if ( empty( $tags ) )
+$http = eZHTTPTool::instance();
+$keywordArray = $Params['Parameters'];
+
+if ( !( is_array( $keywordArray ) && !empty( $keywordArray ) ) )
+{
+    return $Module->handleError( eZError::KERNEL_NOT_FOUND, 'kernel' );
+}
+
+$parentID = 0;
+for ( $i = 0; $i < count( $keywordArray ) - 1; $i++ )
+{
+    $tags = eZTagsObject::fetchList( array( 'parent_id' => $parentID, 'main_tag_id' => 0, 'keyword' => urldecode( trim( $keywordArray[$i] ) ) ) );
+    if ( is_array( $tags ) && !empty( $tags ) )
+    {
+        $parentID = $tags[0]->ID;
+    }
+    else
+    {
+        return $Module->handleError( eZError::KERNEL_NOT_FOUND, 'kernel' );
+    }
+}
+
+$tags = eZTagsObject::fetchList( array( 'parent_id' => $parentID, 'keyword' => urldecode( trim( $keywordArray[count( $keywordArray ) - 1] ) ) ) );
+if ( !( is_array( $tags ) && !empty( $tags ) ) )
 {
     return $Module->handleError( eZError::KERNEL_NOT_FOUND, 'kernel' );
 }
@@ -11,6 +33,13 @@ $tpl = eZTemplate::factory();
 $tpl->setVariable( 'blocks', eZINI::instance( 'eztags.ini' )->variable( 'View', 'ViewBlocks' ) );
 $tpl->setVariable( 'tag', $tags[0] );
 $tpl->setVariable( 'persistent_variable', false );
+$tpl->setVariable( 'show_reindex_message', false );
+
+if ( $http->hasSessionVariable( 'eZTagsShowReindexMessage' ) )
+{
+    $http->removeSessionVariable( 'eZTagsShowReindexMessage' );
+    $tpl->setVariable( 'show_reindex_message', true );
+}
 
 $Result = array();
 $Result['content'] = $tpl->fetch( 'design:tags/view.tpl' );
@@ -22,7 +51,7 @@ while ( $tempTag->hasParent() )
     $tempTag = $tempTag->getParent();
     $Result['path'][] = array( 'tag_id' => $tempTag->ID,
                                'text'   => $tempTag->Keyword,
-                               'url'    => 'tags/view/' . urlencode( $tempTag->Keyword ) );
+                               'url'    => 'tags/view/' . $tempTag->getUrl() );
 }
 
 $Result['path'] = array_reverse( $Result['path'] );
