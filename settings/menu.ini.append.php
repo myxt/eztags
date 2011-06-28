@@ -9,7 +9,7 @@ Tabs[]=eztags
 [Topmenu_eztags]
 NavigationPartIdentifier=eztagsnavigationpart
 Name=Labels
-Tooltip=Labels dashboard
+Tooltip=Labels beheren
 URL[]
 URL[default]=tags/dashboard
 Enabled[]
