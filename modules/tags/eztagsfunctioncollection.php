@@ -13,7 +13,7 @@ class eZTagsFunctionCollection
      * @param integer $tag_id
      * @return array
      */
-    static public function fetchTagObject( $tag_id )
+    static public function fetchTag( $tag_id )
     {
         $result = eZTagsObject::fetch( $tag_id );
 
@@ -24,20 +24,82 @@ class eZTagsFunctionCollection
     }
 
     /**
-     * Fetches first object associated with provided keyword
+     * Fetches all tags named with provided keyword
      *
      * @static
      * @param string $keyword
      * @return array
      */
-    static public function fetchTagObjectByKeyword( $keyword )
+    static public function fetchTagsByKeyword( $keyword )
     {
         $result = eZTagsObject::fetchByKeyword( $keyword );
 
         if( is_array( $result ) && !empty( $result ) )
-            return array( 'result' => $result[0] );
+            return array( 'result' => $result );
         else
             return array( 'result' => false );
+    }
+
+    /**
+     * Fetches subtree of tags by specified parameters
+     *
+     * @static
+     * @param integer $parentTagID
+     * @param array $sortBy
+     * @param integer $offset
+     * @param integer $limit
+     * @param integer $depth
+     * @param string $depthOperator
+     * @param bool $includeSynonyms
+     * @return array
+     */
+    static public function fetchTagTree( $parentTagID, $sortBy, $offset, $limit, $depth, $depthOperator, $includeSynonyms )
+    {
+        if ( !is_numeric( $parentTagID ) || (int) $parentTagID < 0 )
+            return array( 'result' => false );
+
+        $params = array( 'SortBy' => $sortBy,
+                         'Offset' => $offset,
+                         'Limit'  => $limit,
+                         'IncludeSynonyms' => $includeSynonyms );
+
+        if ( $depth !== false )
+        {
+            $params['Depth'] = $depth;
+            $params['DepthOperator'] = $depthOperator;
+        }
+
+        $tags = eZTagsObject::subTreeByTagID( $params, $parentTagID );
+
+        return array( 'result' => $tags );
+    }
+
+    /**
+     * Fetches subtree tag count by specified parameters
+     *
+     * @static
+     * @param integer $parentTagID
+     * @param integer $depth
+     * @param string $depthOperator
+     * @param bool $includeSynonyms
+     * @return integer
+     */
+    static public function fetchTagTreeCount( $parentTagID, $depth, $depthOperator, $includeSynonyms )
+    {
+        if ( !is_numeric( $parentTagID ) || (int) $parentTagID < 0 )
+            return array( 'result' => 0 );
+
+        $params = array( 'IncludeSynonyms' => $includeSynonyms );
+
+        if ( $depth !== false )
+        {
+            $params['Depth'] = $depth;
+            $params['DepthOperator'] = $depthOperator;
+        }
+
+        $tagsCount = eZTagsObject::subTreeCountByTagID( $params, $parentTagID );
+
+        return array( 'result' => $tagsCount );
     }
 }
 

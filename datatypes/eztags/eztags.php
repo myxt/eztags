@@ -34,7 +34,8 @@ class eZTags
      */
     function attributes()
     {
-        return array( 'tag_ids',
+        return array( 'tags',
+                      'tag_ids',
                       'id_string',
                       'keyword_string',
                       'parent_string' );
@@ -61,6 +62,11 @@ class eZTags
     {
         switch ( $name )
         {
+            case 'tags' :
+            {
+                return $this->tags();
+            } break;
+
             case 'tag_ids' :
             {
                 return $this->IDArray;
@@ -248,11 +254,12 @@ class eZTags
                 //and then for each tag check if user can save in one of the allowed locations
                 $parentTag = eZTagsObject::fetch( $t['parent_id'] );
                 $pathString = ( $parentTag instanceof eZTagsObject ) ? $parentTag->PathString : '/';
+                $depth = ( $parentTag instanceof eZTagsObject ) ? $parentTag->Depth + 1 : 1;
 
                 if ( self::canSave( $pathString, $allowedLocations ) )
                 {
-                    $db->query( "INSERT INTO eztags ( parent_id, main_tag_id, keyword, path_string, modified ) VALUES ( " .
-                                 $t['parent_id'] . ", 0, '" . $db->escapeString( trim( $t['keyword'] ) ) . "', '$pathString', 0 )" );
+                    $db->query( "INSERT INTO eztags ( parent_id, main_tag_id, keyword, depth, path_string, modified ) VALUES ( " .
+                                 $t['parent_id'] . ", 0, '" . $db->escapeString( trim( $t['keyword'] ) ) . "', $depth, '$pathString', 0 )" );
                     $tagID = (int) $db->lastSerialID( 'eztags', 'id' );
                     $db->query( "UPDATE eztags SET path_string = CONCAT(path_string, CAST($tagID AS CHAR), '/') WHERE id = $tagID" );
 
@@ -347,6 +354,19 @@ class eZTags
         }
 
         return false;
+    }
+
+    /**
+     * Returns tags within this instance
+     *
+     * @return array
+     */
+    function tags()
+    {
+    	if ( !is_array( $this->IDArray ) || empty( $this->IDArray ) )
+    		return array();
+
+		return eZTagsObject::fetchList( array( 'id' => array( $this->IDArray ) ) );
     }
 
     /**
