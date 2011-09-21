@@ -8,8 +8,24 @@
         <translation>Ograničenje po podstablu oznaka</translation>
     </message>
     <message>
+        <source>Hide root subtree limit tag when editing object</source>
+        <translation>Sakrij vršnu oznaku ograničenja po podstablu kod uređivanja objekata</translation>
+    </message>
+    <message>
         <source>Show dropdown instead of autocomplete</source>
         <translation>Prikaži padajući meni umjesto predloženih oznaka</translation>
+    </message>
+    <message>
+        <source>Maximum number of allowed tags</source>
+        <translation>Maksimalno dopuštenih oznaka</translation>
+    </message>
+    <message>
+        <source>(0 = unlimited)</source>
+        <translation>(0 = neograničeno)</translation>
+    </message>
+    <message>
+        <source>Unlimited</source>
+        <translation>Neograničeno</translation>
     </message>
     <message>
         <source>Select subtree</source>
@@ -87,6 +103,22 @@
     <message>
         <source>No parent</source>
         <translation>Nema nadređene oznake</translation>
+    </message>
+    <message>
+        <source>Up one level.</source>
+        <translation>Jedan nivo iznad.</translation>
+    </message>
+    <message>
+        <source>Children tags (%children_count)</source>
+        <translation>Podređene oznake (%children_count)</translation>
+    </message>
+    <message>
+        <source>Show %1 tags per page.</source>
+        <translation>Prikaži %1 oznaka po stranici.</translation>
+    </message>
+    <message>
+        <source>The current tag does not contain any children.</source>
+        <translation>Trenutna oznaka ne sadrži podređene oznake.</translation>
     </message>
 </context>
 <context>

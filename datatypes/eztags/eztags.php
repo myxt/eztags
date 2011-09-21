@@ -139,6 +139,15 @@ class eZTags
             return;
         }
 
+        $classAttribute = $attribute->contentClassAttribute();
+        $maxTags = (int) $classAttribute->attribute( eZTagsType::MAX_TAGS_FIELD );
+        if ( $maxTags > 0 && count( $this->IDArray ) > $maxTags )
+        {
+            $this->IDArray = array_slice( $this->IDArray, 0, $maxTags );
+            $this->KeywordArray = array_slice( $this->KeywordArray, 0, $maxTags );
+            $this->ParentArray = array_slice( $this->ParentArray, 0, $maxTags );
+        }
+
         $db = eZDB::instance();
         $words = $db->arrayQuery( "SELECT eztags.id, eztags.keyword, eztags.parent_id FROM eztags_attribute_link, eztags
                                     WHERE eztags_attribute_link.keyword_id = eztags.id AND
@@ -197,9 +206,27 @@ class eZTags
 
         //get tags to delete from object attribute
         $tagsToDelete = array();
+        $tempIDArray = array();
+
+        // if for some reason already existing tags are added with ID = 0 with fromString
+        // check to see if they really exist, so we don't delete them by mistake
+        foreach ( array_keys( $this->IDArray ) as $key )
+        {
+            if ( $this->IDArray[$key] == 0 )
+            {
+                $existing = eZTagsObject::fetchList( array( 'keyword' => array( 'like', trim( $this->KeywordArray[$key] ) ), 'parent_id' => $this->ParentArray[$key] ) );
+                if ( is_array( $existing ) && !empty( $existing ) )
+                    $tempIDArray[] = $existing[0]->attribute( 'id' );
+            }
+            else
+            {
+                $tempIDArray[] = $this->IDArray[$key];
+            }
+        }
+
         foreach ( $existingTagIDs as $tid )
         {
-            if ( !in_array( $tid, $this->IDArray ) )
+            if ( !in_array( $tid, $tempIDArray ) )
             {
                 $tagsToDelete[] = $tid;
             }
@@ -226,8 +253,8 @@ class eZTags
 
                     if ( is_array( $existing ) && !empty( $existing ) )
                     {
-                        if ( !in_array( $existing[0]->ID, $existingTagIDs ) )
-                            $tagsToLink[] = $existing[0]->ID;
+                        if ( !in_array( $existing[0]->attribute( 'id' ), $existingTagIDs ) )
+                            $tagsToLink[] = $existing[0]->attribute( 'id' );
                     }
                     else
                     {
@@ -253,8 +280,8 @@ class eZTags
             {
                 //and then for each tag check if user can save in one of the allowed locations
                 $parentTag = eZTagsObject::fetch( $t['parent_id'] );
-                $pathString = ( $parentTag instanceof eZTagsObject ) ? $parentTag->PathString : '/';
-                $depth = ( $parentTag instanceof eZTagsObject ) ? $parentTag->Depth + 1 : 1;
+                $pathString = ( $parentTag instanceof eZTagsObject ) ? $parentTag->attribute( 'path_string' ) : '/';
+                $depth = ( $parentTag instanceof eZTagsObject ) ? (int) $parentTag->attribute( 'depth' ) + 1 : 1;
 
                 if ( self::canSave( $pathString, $allowedLocations ) )
                 {
@@ -311,7 +338,7 @@ class eZTags
             else
             {
                 $limitTag = eZTagsObject::fetch( $attributeSubTreeLimit );
-                $pathString = ( $limitTag instanceof eZTagsObject ) ? $limitTag->PathString : '/';
+                $pathString = ( $limitTag instanceof eZTagsObject ) ? $limitTag->attribute( 'path_string' ) : '/';
 
                 foreach ( $userLimitations as $l )
                 {
@@ -363,10 +390,10 @@ class eZTags
      */
     function tags()
     {
-    	if ( !is_array( $this->IDArray ) || empty( $this->IDArray ) )
-    		return array();
+        if ( !is_array( $this->IDArray ) || empty( $this->IDArray ) )
+            return array();
 
-		return eZTagsObject::fetchList( array( 'id' => array( $this->IDArray ) ) );
+        return eZTagsObject::fetchList( array( 'id' => array( $this->IDArray ) ) );
     }
 
     /**

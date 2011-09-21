@@ -8,7 +8,23 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
+        <source>Hide root subtree limit tag when editing object</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <source>Show dropdown instead of autocomplete</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Maximum number of allowed tags</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>(0 = unlimited)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Unlimited</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -86,6 +102,22 @@
     </message>
     <message>
         <source>No parent</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Up one level.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Children tags (%children_count)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Show %1 tags per page.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The current tag does not contain any children.</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

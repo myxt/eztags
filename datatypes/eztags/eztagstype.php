@@ -14,6 +14,12 @@ class eZTagsType extends eZDataType
     const SHOW_DROPDOWN_VARIABLE = '_eztags_show_dropdown_';
     const SHOW_DROPDOWN_FIELD = 'data_int2';
 
+    const HIDE_ROOT_TAG_VARIABLE = '_eztags_hide_root_tag_';
+    const HIDE_ROOT_TAG_FIELD = 'data_int3';
+
+    const MAX_TAGS_VARIABLE = '_eztags_max_tags_';
+    const MAX_TAGS_FIELD = 'data_int4';
+
     /**
      * Constructor
      *
@@ -88,6 +94,13 @@ class eZTagsType extends eZDataType
                     $contentObjectAttribute->setValidationError( ezpI18n::tr( 'kernel/classes/datatypes', 'Input required.' ) );
                     return eZInputValidator::STATE_INVALID;
                 }
+
+                $maxTags = (int) $classAttribute->attribute( self::MAX_TAGS_FIELD );
+                if ( $maxTags > 0 && ( count( $dataArray ) > $maxTags || count( $data2Array ) > $maxTags || count( $data3Array ) > $maxTags ) )
+                {
+                    $contentObjectAttribute->setValidationError( ezpI18n::tr( 'kernel/classes/datatypes', 'Input required.' ) );
+                    return eZInputValidator::STATE_INVALID;
+                }
             }
         }
         else if ( $contentObjectAttribute->validateIsRequired() )
@@ -151,6 +164,12 @@ class eZTagsType extends eZDataType
      */
     function validateClassAttributeHTTPInput( $http, $base, $attribute )
     {
+        $maxTagsName = $base . self::MAX_TAGS_VARIABLE . $attribute->attribute( 'id' );
+        if ( !$http->hasPostVariable( $maxTagsName ) || ( !is_numeric( $http->postVariable( $maxTagsName ) ) && trim( $http->postVariable( $maxTagsName ) ) != '' ) )
+        {
+            return eZInputValidator::STATE_INVALID;
+        }
+
         $subTreeLimitName = $base . self::SUBTREE_LIMIT_VARIABLE . $attribute->attribute( 'id' );
         if ( !$http->hasPostVariable( $subTreeLimitName ) || (int) $http->postVariable( $subTreeLimitName ) < 0 )
         {
@@ -166,7 +185,7 @@ class eZTagsType extends eZDataType
             return eZInputValidator::STATE_INVALID;
         }
 
-        if ( $subTreeLimit > 0 && $tag->MainTagID > 0 )
+        if ( $subTreeLimit > 0 && $tag->attribute( 'main_tag_id' ) > 0 )
         {
             return eZInputValidator::STATE_INVALID;
         }
@@ -184,6 +203,12 @@ class eZTagsType extends eZDataType
      */
     function fetchClassAttributeHTTPInput( $http, $base, $attribute )
     {
+        $maxTagsName = $base . self::MAX_TAGS_VARIABLE . $attribute->attribute( 'id' );
+        if ( !$http->hasPostVariable( $maxTagsName ) || ( !is_numeric( $http->postVariable( $maxTagsName ) ) && trim( $http->postVariable( $maxTagsName ) ) != '' ) )
+        {
+            return false;
+        }
+
         $subTreeLimitName = $base . self::SUBTREE_LIMIT_VARIABLE . $attribute->attribute( 'id' );
         if ( !$http->hasPostVariable( $subTreeLimitName ) || (int) $http->postVariable( $subTreeLimitName ) < 0 )
         {
@@ -197,10 +222,85 @@ class eZTagsType extends eZDataType
             $data2 = 1;
         }
 
+        $data3 = 0;
+        if ( $http->hasPostVariable( $base . self::HIDE_ROOT_TAG_VARIABLE . $attribute->attribute( 'id' ) ) )
+        {
+            $data3 = 1;
+        }
+
+        $data4 = (int) trim( $http->postVariable( $maxTagsName ) );
+
         $attribute->setAttribute( self::SUBTREE_LIMIT_FIELD, $data );
         $attribute->setAttribute( self::SHOW_DROPDOWN_FIELD, $data2 );
+        $attribute->setAttribute( self::HIDE_ROOT_TAG_FIELD, $data3 );
+        $attribute->setAttribute( self::MAX_TAGS_FIELD, $data4 < 0 ? 0 : $data4 );
 
         return true;
+    }
+
+    /**
+     * Extracts values from the attribute parameters and sets it in the class attribute.
+     * @param eZContentClassAttribute $classAttribute
+     * @param DOMNode $attributeNode
+     * @param DOMNode $attributeParametersNode
+     */
+    function unserializeContentClassAttribute( $classAttribute, $attributeNode, $attributeParametersNode )
+    {
+        $subTreeLimit = 0;
+        $domNodes = $attributeParametersNode->getElementsByTagName( 'subtree-limit' );
+        if ( $domNodes->length > 0 )
+            $subTreeLimit = (int) $domNodes->item( 0 )->textContent;
+
+        $maxTags = 0;
+        $domNodes = $attributeParametersNode->getElementsByTagName( 'max-tags' );
+        if ( $domNodes->length > 0 )
+            $maxTags = (int) $domNodes->item( 0 )->textContent;
+
+        $showDropDown = 0;
+        $domNodes = $attributeParametersNode->getElementsByTagName( 'dropdown' );
+        if ( $domNodes->length > 0 && $domNodes->item( 0 )->textContent === 'true' )
+            $showDropDown = 1;
+
+        $hideRootTag = 0;
+        $domNodes = $attributeParametersNode->getElementsByTagName( 'hide-root-tag' );
+        if ( $domNodes->length > 0 && $domNodes->item( 0 )->textContent === 'true' )
+            $hideRootTag = 1;
+
+        $classAttribute->setAttribute( self::SUBTREE_LIMIT_FIELD, $subTreeLimit );
+        $classAttribute->setAttribute( self::MAX_TAGS_FIELD, $maxTags );
+        $classAttribute->setAttribute( self::SHOW_DROPDOWN_FIELD, $showDropDown );
+        $classAttribute->setAttribute( self::HIDE_ROOT_TAG_FIELD, $hideRootTag );
+    }
+
+    /**
+     * Adds the necessary dom structure to the attribute parameters.
+     * @param eZContentClassAttribute $classAttribute
+     * @param DOMNode $attributeNode
+     * @param DOMNode $attributeParametersNode
+     */
+    function serializeContentClassAttribute( $classAttribute, $attributeNode, $attributeParametersNode )
+    {
+        $dom = $attributeParametersNode->ownerDocument;
+
+        $subTreeLimit = (string) $classAttribute->attribute( self::SUBTREE_LIMIT_FIELD );
+        $domNode = $dom->createElement( 'subtree-limit' );
+        $domNode->appendChild( $dom->createTextNode( $subTreeLimit ) );
+        $attributeParametersNode->appendChild( $domNode );
+
+        $maxTags = (string) $classAttribute->attribute( self::MAX_TAGS_FIELD );
+        $domNode = $dom->createElement( 'max-tags' );
+        $domNode->appendChild( $dom->createTextNode( $maxTags ) );
+        $attributeParametersNode->appendChild( $domNode );
+
+        $showDropDown = ( (int) $classAttribute->attribute( self::SHOW_DROPDOWN_FIELD ) ) > 0 ? 'true' : 'false';
+        $domNode = $dom->createElement( 'dropdown' );
+        $domNode->appendChild( $dom->createTextNode( $showDropDown ) );
+        $attributeParametersNode->appendChild( $domNode );
+
+        $hideRootTag = ( (int) $classAttribute->attribute( self::HIDE_ROOT_TAG_FIELD ) ) > 0 ? 'true' : 'false';
+        $domNode = $dom->createElement( 'hide-root-tag' );
+        $domNode->appendChild( $dom->createTextNode( $hideRootTag ) );
+        $attributeParametersNode->appendChild( $domNode );
     }
 
     /**
