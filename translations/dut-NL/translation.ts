@@ -493,7 +493,7 @@
     <name>kernel/classes/datatypes</name>
     <message>
         <source>Input required.</source>
-        <translation type="unfinished"></translation>
+        <translation>Invoer verplicht.</translation>
     </message>
 </context>
 </TS>
