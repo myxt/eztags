@@ -46,6 +46,18 @@ if ( $http->hasPostVariable( 'SaveButton' ) )
 
         $tag->setAttribute( 'keyword', $newKeyword );
         $tag->store();
+
+        /* Extended Hook */
+        if ( class_exists( 'ezpEvent', false ) )
+        {
+            $tagParent = $tag->getParent();
+            ezpEvent::getInstance()->filter( 'tag/edit', array(
+                'tag'          => $tag,
+                'oldParentTag' => $tagParent,
+                'newParentTag' => $tagParent,
+                'move'         => false ) );
+        }
+
         $tag->registerSearchObjects();
 
         $db->commit();

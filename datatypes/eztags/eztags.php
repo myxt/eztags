@@ -38,6 +38,7 @@ class eZTags
                       'tag_ids',
                       'id_string',
                       'keyword_string',
+                      'meta_keyword_string',
                       'parent_string' );
     }
 
@@ -80,6 +81,11 @@ class eZTags
             case 'keyword_string' :
             {
                 return $this->keywordString();
+            } break;
+
+            case 'meta_keyword_string' :
+            {
+                return $this->keywordString( ", " );
             } break;
 
             case 'parent_string' :
@@ -295,6 +301,9 @@ class eZTags
                     $db->query( "UPDATE eztags SET modified = $currentTime WHERE " . $db->generateSQLINStatement( $pathArray, 'id', false, true, 'int' ) );
 
                     $tagsToLink[] = $tagID;
+
+                    if ( class_exists( 'ezpEvent', false ) )
+                        ezpEvent::getInstance()->filter( 'tag/add', array( 'tag' => eZTagsObject::fetch( $tagID ), 'parentTag' => $parentTag ) );
                 }
             }
         }
