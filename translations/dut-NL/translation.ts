@@ -496,4 +496,11 @@
         <translation>Invoer verplicht.</translation>
     </message>
 </context>
+<context>
+    <name>kernel/navigationpart</name>
+    <message>
+        <source>eZTags</source>
+        <translation>Labels</translation>
+    </message>
+</context>
 </TS>
