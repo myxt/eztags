@@ -490,13 +490,6 @@
     </message>
 </context>
 <context>
-    <name>kernel/classes/datatypes</name>
-    <message>
-        <source>Input required.</source>
-        <translation>Invoer verplicht.</translation>
-    </message>
-</context>
-<context>
     <name>kernel/navigationpart</name>
     <message>
         <source>eZTags</source>
